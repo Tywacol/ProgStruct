@@ -156,16 +156,16 @@ bool recherche2(int tab[N], int el)
 {
     int debut = 0;
     int fin = N-1;
-    int mil = N / 2;
-    while (debut != fin) {
+    int mil;
+    while (debut <= fin) {
         printf("Mil = %d, debut = %d, fin = %d \n", mil, debut, fin);
         mil = (fin + debut) / 2;
         if (tab[mil] == el) {
             return true;
         } else if (tab[mil] > el) {
-            fin = mil;
+            fin = mil - 1;
         } else {
-            debut = mil;
+            debut = mil + 1; /* + 1 pour terminaison */
         }
     }
     return false;
