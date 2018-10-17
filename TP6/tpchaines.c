@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 void mange_et_reecrit(void)
+  
 {
   char c;
   c = getchar();
