@@ -1,18 +1,19 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-void mange_et_reecrit(void) 
+void char_count(void) 
 {
+  int cnt;
   char c;
   c = getchar();
   while ( c != EOF ) {
-    putchar(c);
     c = getchar();
+    cnt++;
   }
 }
 
 int main(void)
 {
-  mange_et_reecrit();
+  char_countt();
   return 0;
 }
