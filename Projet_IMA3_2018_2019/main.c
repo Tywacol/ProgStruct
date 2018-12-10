@@ -8,6 +8,12 @@
 
 #define NB_OBSTACLES 8
 #define NB_BONUS 2
+#define NB_WARP 2
+#define NB_DUPLICATE 1
+
+/* Donne la vision globale */
+#define DEBUG false
+
 
 /* Variables global */
 
@@ -33,7 +39,8 @@ int hasard(int inf, int sup)
     return (inf + (rando % (sup - inf + 1)));
 }
 
-void init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int c_pos_x, int c_pos_y)
+void init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int c_pos_x, int c_pos_y, int nb_warp,
+               int nb_duplicate)
 {
     int x_tmp;
     int y_tmp;
@@ -53,8 +60,26 @@ void init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int 
         x_tmp = hasard(0, 15);
         y_tmp = hasard(0, 15);
     } while (grid[x_tmp][y_tmp]);
-    //grid[x_tmp][y_tmp] = 'T';
-    grid[7][7] = 'T';
+    grid[x_tmp][y_tmp] = 'T';
+
+    /* placement des duplicate */
+    for (int n = 0; n < nb_duplicate; ++n) {
+        do {
+            x_tmp = hasard(0, 15);
+            y_tmp = hasard(0, 15);
+        } while (grid[x_tmp][y_tmp]);
+        grid[x_tmp][y_tmp] = 'D';
+    }
+
+
+    /* placement des warp */
+    for (int n = 0; n < nb_warp; ++n) {
+        do {
+            x_tmp = hasard(0, 15);
+            y_tmp = hasard(0, 15);
+        } while (grid[x_tmp][y_tmp]);
+        grid[x_tmp][y_tmp] = 'W';
+    }
 
     /* placement des bonus */
     for (int m = 0; m < nb_bonus; ++m) {
@@ -118,16 +143,21 @@ void output_grid(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
                     printf(" ");
                 }
             } else {
-                printf("%c", 254);
+                if (DEBUG) {
+                    printf("%c", grid[y][x]);
+                }
+                printf("%c", 254); // 254 est le caractère carre  : ■
             }
             printf(".");
         }
         printf("|\n");
 
     }
+
 }
 
 // VERSION PERIODIQUE
+
 void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
 {
     int vision = 2 + VISION_BONUS;
@@ -140,6 +170,9 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
 
 
     int cases_vision[HAUTEUR][HAUTEUR];
+    for (int l = 0; l < 0; ++l) {
+        
+    }
     for (int j = c_pos_y - vision; j < c_pos_y + vision; ++j) {
         for (int i = c_pos_x - vision; i < c_pos_x + vision; ++i) {
             if (j < 0) {
@@ -160,7 +193,12 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
         for (int x = 0; x < LARGEUR; ++x) {
 
 
-            if (is_in(x, y, cases_visions_7_7)) {
+            if (cases_vision[y][x]) {
+                if (grid[y][x]) {
+                    printf("%c", grid[y][x]);
+                } else {
+                    printf("%c", cases_vision[y][x]); // On stock le move dans case visions
+                }
                 si
                 la
             case n'est pas vide : on affiche la case
@@ -217,7 +255,7 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
         printf("|\n");
 
     }
-}
+}*/
 
 void choixToXY(int c_pos_x, int c_pos_y, int f_pos, int *futur_x, int *futur_y)
 {
@@ -265,6 +303,8 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos)
 {
     int futur_x;
     int futur_y;
+    int x_tmp;
+    int y_tmp;
     choixToXY(*c_pos_x, *c_pos_y, f_pos, &futur_x, &futur_y);
     switch (grid[futur_y][futur_x]) {
     case 'T':
@@ -280,6 +320,28 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos)
         break;
     case 'X':
         break;
+    case 'D':
+        /* placement du chevalier */
+        grid[*c_pos_y][*c_pos_x] = 0;
+        *c_pos_x = futur_x;
+        *c_pos_y = futur_y;
+        grid[*c_pos_y][*c_pos_x] = 'C';
+
+        /* placement de deuxieme cible */
+        do {
+            x_tmp = hasard(0, 15);
+            y_tmp = hasard(0, 15);
+        } while (grid[x_tmp][y_tmp]);
+        grid[x_tmp][y_tmp] = 'T';
+    case 'W':
+        /* placement du chevalier */
+        do {
+            futur_y = hasard(0, 15);
+            futur_x = hasard(0, 15);
+        } while (grid[futur_y][futur_x]);
+        grid[futur_y][futur_x] = 'C';
+        // remise a 0 de l'ancienne position
+        grid[*c_pos_y][*c_pos_x] = 0;
     default:
         grid[*c_pos_y][*c_pos_x] = 0;
         *c_pos_x = futur_x;
@@ -306,6 +368,7 @@ int main()
 
     bool Quit = false;
     bool Restart = false;
+    char restart;
 
     int chevalier_pos_x = hasard(5, 10);
     int chevalier_pos_y = hasard(5, 10);
@@ -313,20 +376,20 @@ int main()
 
     int futur_pos = 0;
     char grid[HAUTEUR][LARGEUR];
-    init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y);
+    init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE);
 
     do {
         if (WON) {
             //system("cls");
             printf("**************** JEU DU CHEVALIER ****************\n");
             printf("*                                                *\n");
-            printf("*             BRAVO ! Vous avez gagne en         *\n");
+            printf("*                   BRAVO !                      *\n");
             printf("*                                                *\n");
-            printf("*                 %d iterations !                 *\n", ITER);
+            printf("*       Vous avez gagne en %d iterations !      *\n", ITER);
             printf("*                                                *\n");
             printf("************** 'R' pour recommencer **************\n");
-            scanf("%d", &futur_pos);
-            if (futur_pos == 'R') {
+            scanf(" %c", &restart);
+            if (restart == 'R') {
                 Restart = true;
             } else {
                 Quit = true;
@@ -336,7 +399,10 @@ int main()
         if (Restart) {
             chevalier_pos_x = hasard(5, 10);
             chevalier_pos_y = hasard(5, 10);
-            init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y);
+            VISION_BONUS = 0;
+            ITER = 0;
+            WON = false;
+            init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE);
             Restart = false;
         }
         if (Quit) {
@@ -346,9 +412,16 @@ int main()
         output_grid(grid, chevalier_pos_x, chevalier_pos_y);
         printf("\n");
         printf("Prochaine position (R pour recommencer) : ");
-        scanf("%d", &futur_pos);
-        move(grid, &chevalier_pos_x, &chevalier_pos_y, futur_pos);
-        //system("clear");
+        if (scanf("%d", &futur_pos)) {
+            move(grid, &chevalier_pos_x, &chevalier_pos_y, futur_pos);
+            //system("clear");
+        } else if (scanf(" %c", &restart)) {
+            if (restart == 'R') {
+                Restart = true;
+            }
+
+        }
+
     } while (!Quit);
 
     return 0;
