@@ -162,70 +162,54 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
 {
     int vision = 2 + VISION_BONUS;
 
+    int cases_vision[HAUTEUR][HAUTEUR];
+    for (int l = 0; l < HAUTEUR; ++l) {
+        for (int i = 0; i < HAUTEUR; ++i) {
+            cases_vision[l][i] = false;
+        }
+    }
+
+    bool depassement = false;
+
+    for (int j = c_pos_y - vision; j < c_pos_y + vision + 1; ++j) {
+        for (int i = c_pos_x - vision; i < c_pos_x + vision + 1; ++i) {
+            depassement = false;
+            if (j < 0) {
+                cases_vision[(HAUTEUR - 1) + (j + 1)][i] = true;
+                depassement = true;
+            }
+            if (j > (HAUTEUR - 1)) {
+                cases_vision[j - (HAUTEUR)][i] = true;
+                depassement = true;
+            }
+            if (i < 0) {
+                cases_vision[j][(HAUTEUR - 1) + (i + 1)] = true;
+                depassement = true;
+            }
+            if (i > (HAUTEUR - 1)) {
+                cases_vision[j][i - (HAUTEUR)] = true;
+                depassement = true;
+            }
+            if (!depassement) {
+                cases_vision[j][i] = true;
+
+            }
+
+
+        }
+    }
+
 
     /* ligne du haut */
     for (int k = 0; k < LARGEUR; ++k) {
         printf(" _");
     }
 
-
-    int cases_vision[HAUTEUR][HAUTEUR];
-    for (int l = 0; l < 0; ++l) {
-        
-    }
-    for (int j = c_pos_y - vision; j < c_pos_y + vision; ++j) {
-        for (int i = c_pos_x - vision; i < c_pos_x + vision; ++i) {
-            if (j < 0) {
-                cases_vision[(HAUTEUR - 1) - j][i] = true;
-            }
-            if (j > (HAUTEUR - 1)) {
-                cases_vision[j - (HAUTEUR - 1)][i] = true;
-            }
-        }
-    }
-
-
     printf("\n");
-    int depassement_x = 0;
-    int depassement_y = 0;
     for (int y = 0; y < HAUTEUR; ++y) {
         printf("|");
         for (int x = 0; x < LARGEUR; ++x) {
-
-
             if (cases_vision[y][x]) {
-                if (grid[y][x]) {
-                    printf("%c", grid[y][x]);
-                } else {
-                    printf("%c", cases_vision[y][x]); // On stock le move dans case visions
-                }
-                si
-                la
-            case n'est pas vide : on affiche la case
-                si
-                la
-            case est vide
-                ET
-                qu
-                'il'
-                'y a un deplacemen' : on
-                        affiche
-                le
-                bon numero
-            }
-
-
-            if (y <= c_pos_y + vision && y >= c_pos_y - vision
-                && x <= c_pos_x + vision && x >= c_pos_x - vision) {
-                if (c_pos_x - vision < 0) {
-                    depassement_x = abs(c_pos_x - vision);
-                    for (int i = 0; i < depassement_x; ++i) {
-                        coord_tmp[1][0]
-                        " '1.x' = L-abs"]
-                        // coord_tmp [pos][x|y]
-                        // pos = 1..8, x|y = 0|1
-                    }
-                }
                 if (grid[y][x]) {
                     printf("%c", grid[y][x]);
                 } else if (y == c_pos_y - 1 && x == c_pos_x + 2) {
@@ -248,15 +232,18 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                     printf(" ");
                 }
             } else {
-                printf("%c", 254);
+                if (DEBUG) {
+                    printf("%c", grid[y][x]);
+                }
+                printf("%c", 254); // 254 est le caractère carre  : ■
             }
             printf(".");
         }
         printf("|\n");
 
     }
-}*/
 
+}
 void choixToXY(int c_pos_x, int c_pos_y, int f_pos, int *futur_x, int *futur_y)
 {
     // Convertit la position
