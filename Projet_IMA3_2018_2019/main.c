@@ -10,6 +10,7 @@
 #define NB_BONUS 2
 #define NB_WARP 2
 #define NB_DUPLICATE 1
+#define NB_MALUS 1
 
 /* Donne la vision globale */
 #define DEBUG false
@@ -40,7 +41,7 @@ int hasard(int inf, int sup)
 }
 
 void init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int c_pos_x, int c_pos_y, int nb_warp,
-               int nb_duplicate)
+               int nb_duplicate, int nb_malus)
 {
     int x_tmp;
     int y_tmp;
@@ -99,6 +100,15 @@ void init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int 
         grid[x_tmp][y_tmp] = 'X';
 
     }
+    /* placement des malus */
+    for (int l = 0; l < nb_malus; ++l) {
+        do {
+            x_tmp = hasard(0, 15);
+            y_tmp = hasard(0, 15);
+        } while (grid[x_tmp][y_tmp]);
+        grid[x_tmp][y_tmp] = 'M';
+
+    }
 
 
 }
@@ -106,59 +116,6 @@ void init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int 
 /* affiche une tableau */
 // VERSION CLASSIQUE
 void output_grid(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
-{
-    int vision = 2 + VISION_BONUS;
-
-
-    /* ligne du haut */
-    for (int k = 0; k < LARGEUR; ++k) {
-        printf(" _");
-    }
-
-    printf("\n");
-    for (int y = 0; y < HAUTEUR; ++y) {
-        printf("|");
-        for (int x = 0; x < LARGEUR; ++x) {
-            if (y <= c_pos_y + vision && y >= c_pos_y - vision
-                && x <= c_pos_x + vision && x >= c_pos_x - vision) {
-                if (grid[y][x]) {
-                    printf("%c", grid[y][x]);
-                } else if (y == c_pos_y - 1 && x == c_pos_x + 2) {
-                    printf("1");
-                } else if (y == c_pos_y - 2 && x == c_pos_x + 1) {
-                    printf("2");
-                } else if (y == c_pos_y - 2 && x == c_pos_x - 1) {
-                    printf("3");
-                } else if (y == c_pos_y - 1 && x == c_pos_x - 2) {
-                    printf("4");
-                } else if (y == c_pos_y + 1 && x == c_pos_x - 2) {
-                    printf("5");
-                } else if (y == c_pos_y + 2 && x == c_pos_x - 1) {
-                    printf("6");
-                } else if (y == c_pos_y + 2 && x == c_pos_x + 1) {
-                    printf("7");
-                } else if (y == c_pos_y + 1 && x == c_pos_x + 2) {
-                    printf("8");
-                } else {
-                    printf(" ");
-                }
-            } else {
-                if (DEBUG) {
-                    printf("%c", grid[y][x]);
-                }
-                printf("%c", 254); // 254 est le caractère carre  : ■
-            }
-            printf(".");
-        }
-        printf("|\n");
-
-    }
-
-}
-
-// VERSION PERIODIQUE
-
-void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
 {
     int vision = 2 + VISION_BONUS;
 
@@ -237,13 +194,116 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                 }
                 printf("%c", 254); // 254 est le caractère carre  : ■
             }
+            printf(" ");
+        }
+        printf("\n");
+
+    }
+
+}
+
+// VERSION PERIODIQUE
+
+void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
+{
+    int vision = 2 + VISION_BONUS;
+
+
+    /* ligne du haut */
+    for (int k = 0; k < LARGEUR; ++k) {
+        printf(" _");
+    }
+
+
+    int cases_vision[HAUTEUR][HAUTEUR];
+    for (int l = 0; l < 0; ++l) {
+
+    }
+    for (int j = c_pos_y - vision; j < c_pos_y + vision + 1; ++j) {
+        for (int i = c_pos_x - vision; i < c_pos_x + vision + 1; ++i) {
+            if (j < 0) {
+                cases_vision[(HAUTEUR - 1) + (j + 1)][i] = true;
+            }
+            if (j > (HAUTEUR - 1)) {
+                cases_vision[j - (HAUTEUR - 1)][i] = true;
+            }
+            if (i < 0) {
+                cases_vision[j][(HAUTEUR - 1) + (i + 1)] = true;
+            }
+            if (i > (HAUTEUR - 1)) {
+                cases_vision[j][(HAUTEUR - 1) + (j + 1)] = true;
+            }
+
+        }
+    }
+
+
+    printf("\n");
+    int depassement_x = 0;
+    int depassement_y = 0;
+    for (int y = 0; y < HAUTEUR; ++y) {
+        printf("|");
+        for (int x = 0; x < LARGEUR; ++x) {
+
+
+            /* Si on a la vision sur la case */
+            if (cases_vision[y][x]) {
+                if (grid[y][x]) {
+                    printf("%c", grid[y][x]);
+                }
+                /*else {
+                    printf("%c", cases_vision[y][x]); // On stock le move dans case visions
+                }*/
+                /*si la case n'est pas vide : on affiche la case
+                si la case est vide ET qu'il''y a un deplacemen' : on affiche le bon numero */
+            }
+
+
+
+                // if (y <= c_pos_y + vision && y >= c_pos_y - vision
+                //   && x <= c_pos_x + vision && x >= c_pos_x - vision) {
+                /*if (c_pos_x - vision < 0) {
+                    depassement_x = abs(c_pos_x - vision);
+                    for (int i = 0; i < depassement_x; ++i) {
+                        coord_tmp[1][0]
+                        " '1.x' = L-abs"]
+                        // coord_tmp [pos][x|y]
+                        // pos = 1..8, x|y = 0|1
+                    }
+                }*/
+                /*
+                if (grid[y][x]) {
+                    printf("%c", grid[y][x]);
+                } else if (y == c_pos_y - 1 && x == c_pos_x + 2) {
+                    printf("1");
+                } else if (y == c_pos_y - 2 && x == c_pos_x + 1) {
+                    printf("2");
+                } else if (y == c_pos_y - 2 && x == c_pos_x - 1) {
+                    printf("3");
+                } else if (y == c_pos_y - 1 && x == c_pos_x - 2) {
+                    printf("4");
+                } else if (y == c_pos_y + 1 && x == c_pos_x - 2) {
+                    printf("5");
+                } else if (y == c_pos_y + 2 && x == c_pos_x - 1) {
+                    printf("6");
+                } else if (y == c_pos_y + 2 && x == c_pos_x + 1) {
+                    printf("7");
+                } else if (y == c_pos_y + 1 && x == c_pos_x + 2) {
+                    printf("8");
+                } else {
+                    printf(" ");
+                } */
+                //    }
+            else {
+                printf("%c", 254);
+            }
             printf(".");
         }
         printf("|\n");
 
     }
-
 }
+
 void choixToXY(int c_pos_x, int c_pos_y, int f_pos, int *futur_x, int *futur_y)
 {
     // Convertit la position
@@ -309,6 +369,8 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos)
         break;
     case 'D':
         /* placement du chevalier */
+
+
         grid[*c_pos_y][*c_pos_x] = 0;
         *c_pos_x = futur_x;
         *c_pos_y = futur_y;
@@ -363,7 +425,7 @@ int main()
 
     int futur_pos = 0;
     char grid[HAUTEUR][LARGEUR];
-    init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE);
+    init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE,NB_MALUS);
 
     do {
         if (WON) {
@@ -389,7 +451,7 @@ int main()
             VISION_BONUS = 0;
             ITER = 0;
             WON = false;
-            init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE);
+            init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE,NB_MALUS);
             Restart = false;
         }
         if (Quit) {
@@ -399,6 +461,8 @@ int main()
         output_grid(grid, chevalier_pos_x, chevalier_pos_y);
         printf("\n");
         printf("Prochaine position (R pour recommencer) : ");
+
+        // On aurait pu se simplifier la vie en utilisant char futur_pos, le scan fonctionne ensuite dans tout les cas
         if (scanf("%d", &futur_pos)) {
             move(grid, &chevalier_pos_x, &chevalier_pos_y, futur_pos);
             //system("clear");
