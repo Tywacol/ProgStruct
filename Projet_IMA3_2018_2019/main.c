@@ -22,11 +22,6 @@ int VISION_BONUS = 0;
 int ITER = 0;
 bool WON = false;
 
-/*
-* Remplir un tableau de taille N avec
-* des entiers positifs inférieurs à 100
-*/
-
 /* initialisation du generateur */
 void initialise_rand()
 {
@@ -127,40 +122,64 @@ void output_grid(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
     }
 
     bool depassement = false;
+    int y_periodique = 0;
+    int x_periodique = 0;
 
     for (int j = c_pos_y - vision; j < c_pos_y + vision + 1; ++j) {
         for (int i = c_pos_x - vision; i < c_pos_x + vision + 1; ++i) {
             depassement = false;
+            y_periodique = j;
+            x_periodique = i;
             if (j < 0) {
-                cases_vision[(HAUTEUR - 1) + (j + 1)][i] = true;
+                y_periodique = (HAUTEUR - 1) + (j + 1);
+                // Si il n'y a rien dans la case du jeu
+                if (!grid[y_periodique][i]) {
+                    // On ajoute le numéro
+                    cases_vision[y_periodique][i] = true; // le bon numero à la place de t
+                } else {
+                    cases_vision[y_periodique][i] = true;
+                }
                 depassement = true;
-            }
-            if (j > (HAUTEUR - 1)) {
+            } else if (j > (HAUTEUR - 1)) {
                 cases_vision[j - (HAUTEUR)][i] = true;
                 depassement = true;
             }
+
             if (i < 0) {
                 cases_vision[j][(HAUTEUR - 1) + (i + 1)] = true;
                 depassement = true;
-            }
-            if (i > (HAUTEUR - 1)) {
+            } else if (i > (HAUTEUR - 1)) {
                 cases_vision[j][i - (HAUTEUR)] = true;
                 depassement = true;
             }
             if (!depassement) {
                 cases_vision[j][i] = true;
+            }
 
+            if (!grid[y_periodique][x_periodique]) {
+                if (j == c_pos_y - 1 && i == c_pos_x + 2) {
+                    cases_vision[y_periodique][x_periodique] = 1;
+                } else if (j == c_pos_y - 2 && i == c_pos_x + 1) {
+                    cases_vision[y_periodique][x_periodique] = 2;
+                } else if (j == c_pos_y - 2 && i == c_pos_x - 1) {
+                    cases_vision[y_periodique][x_periodique] = 3;
+                } else if (j == c_pos_y - 1 && i == c_pos_x - 2) {
+                    cases_vision[y_periodique][x_periodique] = 4;
+                } else if (j == c_pos_y + 1 && i == c_pos_x - 2) {
+                    cases_vision[y_periodique][x_periodique] = 5;
+                } else if (j == c_pos_y + 2 && i == c_pos_x - 1) {
+                    cases_vision[y_periodique][x_periodique] = 6;
+                } else if (j == c_pos_y + 2 && i == c_pos_x + 1) {
+                    cases_vision[y_periodique][x_periodique] = 7;
+                } else if (j == c_pos_y + 1 && i == c_pos_x + 2) {
+                    cases_vision[y_periodique][x_periodique] = 8;
+                }
             }
 
 
         }
     }
 
-
-    /* ligne du haut */
-   // for (int k = 0; k < LARGEUR; ++k) {
-    //    printf(" _");
-    //}
 
     printf("\n");
     for (int y = 0; y < HAUTEUR; ++y) {
@@ -169,22 +188,8 @@ void output_grid(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
             if (cases_vision[y][x]) {
                 if (grid[y][x]) {
                     printf("%c", grid[y][x]);
-                } else if (y == c_pos_y - 1 && x == c_pos_x + 2) {
-                    printf("1");
-                } else if (y == c_pos_y - 2 && x == c_pos_x + 1) {
-                    printf("2");
-                } else if (y == c_pos_y - 2 && x == c_pos_x - 1) {
-                    printf("3");
-                } else if (y == c_pos_y - 1 && x == c_pos_x - 2) {
-                    printf("4");
-                } else if (y == c_pos_y + 1 && x == c_pos_x - 2) {
-                    printf("5");
-                } else if (y == c_pos_y + 2 && x == c_pos_x - 1) {
-                    printf("6");
-                } else if (y == c_pos_y + 2 && x == c_pos_x + 1) {
-                    printf("7");
-                } else if (y == c_pos_y + 1 && x == c_pos_x + 2) {
-                    printf("8");
+                } else if (cases_vision[y][x] != 1) {
+                    printf("%d", cases_vision[y][x]);
                 } else {
                     printf(" ");
                 }
@@ -304,41 +309,139 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
     }
 }
 
+/* Renvoie les coordonnees de la futur position */
 void choixToXY(int c_pos_x, int c_pos_y, int f_pos, int *futur_x, int *futur_y)
 {
-    // Convertit la position
+
     switch (f_pos) {
     case 1:
         *futur_y = c_pos_y - 1;
         *futur_x = c_pos_x + 2;
+
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     case 2:
         *futur_y = c_pos_y - 2;
         *futur_x = c_pos_x + 1;
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     case 3:
         *futur_y = c_pos_y - 2;
         *futur_x = c_pos_x - 1;
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     case 4:
         *futur_y = c_pos_y - 1;
         *futur_x = c_pos_x - 2;
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     case 5:
         *futur_y = c_pos_y + 1;
         *futur_x = c_pos_x - 2;
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     case 6:
         *futur_y = c_pos_y + 2;
         *futur_x = c_pos_x - 1;
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     case 7:
         *futur_y = c_pos_y + 2;
         *futur_x = c_pos_x + 1;
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     case 8:
         *futur_y = c_pos_y + 1;
         *futur_x = c_pos_x + 2;
+        if (*futur_y < 0) {
+            *futur_y = (HAUTEUR - 1) + (*futur_y + 1);
+        }
+        if (*futur_y > (HAUTEUR - 1)) {
+            *futur_y = *futur_y - (HAUTEUR);
+        }
+        if (*futur_x < 0) {
+            *futur_x = (HAUTEUR - 1) + (*futur_x + 1);
+        }
+        if (*futur_x > (HAUTEUR - 1)) {
+            *futur_x = *futur_x - (HAUTEUR);
+        }
         break;
     default:
         break;
@@ -425,7 +528,7 @@ int main()
 
     int futur_pos = 0;
     char grid[HAUTEUR][LARGEUR];
-    init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE,NB_MALUS);
+    init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE, NB_MALUS);
 
     do {
         if (WON) {
@@ -451,7 +554,7 @@ int main()
             VISION_BONUS = 0;
             ITER = 0;
             WON = false;
-            init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE,NB_MALUS);
+            init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP, NB_DUPLICATE, NB_MALUS);
             Restart = false;
         }
         if (Quit) {
