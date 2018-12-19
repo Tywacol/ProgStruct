@@ -158,13 +158,13 @@ void output_grid(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
 
 
     /* ligne du haut */
-    for (int k = 0; k < LARGEUR; ++k) {
-        printf(" _");
-    }
+   // for (int k = 0; k < LARGEUR; ++k) {
+    //    printf(" _");
+    //}
 
     printf("\n");
     for (int y = 0; y < HAUTEUR; ++y) {
-        printf("|");
+        //printf("|");
         for (int x = 0; x < LARGEUR; ++x) {
             if (cases_vision[y][x]) {
                 if (grid[y][x]) {
