@@ -3,20 +3,29 @@
 #include <time.h>
 #include <stdbool.h> // peut etre à la fin plus propre
 
+/* DIMENSIONS */
 #define LARGEUR 16
 #define HAUTEUR 16
 
-#define NB_OBSTACLES 8
-#define NB_BONUS 2
 #define NB_WARP 2
 #define NB_DUPLICATE 1
 #define NB_MALUS 1
+#define NB_OBSTACLE_NORMAL 8
+#define NB_BONUS_NORMAL 2
 
 /* Variables global */
+int NB_OBSTACLES = NB_OBSTACLE_NORMAL;
+int NB_BONUS = NB_BONUS_NORMAL;
 int VISION_BONUS = 0;
 int ITER = 0;
-bool DEBUG = true; /* Mettre a vrai pour obtenir la vision globale */
+/* Coordonnees de la cible */
+int CIBLE_X;
+int CIBLE_Y;
+bool DEBUG = false; /* Mettre a vrai pour obtenir la vision globale */
 bool WON = false;
+bool LOST = false;
+bool CIBLE_MOBILE = true;
+
 
 /* initialisation du generateur */
 void initialise_rand()
@@ -31,10 +40,12 @@ int hasard(int inf, int sup)
     return (inf + (rando % (sup - inf + 1)));
 }
 
+
 void
 init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int c_pos_x, int c_pos_y, int nb_warp,
           int nb_duplicate, int nb_malus)
 {
+
     int x_tmp;
     int y_tmp;
 
@@ -50,10 +61,10 @@ init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int c_pos
 
     /* placement de la cible */
     do {
-        x_tmp = hasard(0, 15);
-        y_tmp = hasard(0, 15);
-    } while (grid[x_tmp][y_tmp]);
-    grid[x_tmp][y_tmp] = 'T';
+        CIBLE_X = hasard(0, 15);
+        CIBLE_Y = hasard(0, 15);
+    } while (grid[CIBLE_Y][CIBLE_X]);
+    grid[CIBLE_Y][CIBLE_X] = 'T';
 
     /* placement des duplicate */
     for (int n = 0; n < nb_duplicate; ++n) {
@@ -286,9 +297,17 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
     printf("\n");
     for (int y = 0; y < HAUTEUR; ++y) {
         for (int x = 0; x < LARGEUR; ++x) {
+            if (DEBUG) {
+                printf("|");
+            }
             if (cases_vision[y][x]) {
                 if (grid[y][x]) {
-                    printf("%c", grid[y][x]);
+                    /* Case T piege, si le joueur est tombe sur le malus */
+                    if (grid[y][x] == 'P') {
+                        printf("T");
+                    } else {
+                        printf("%c", grid[y][x]);
+                    }
                 } else if (cases_vision[y][x] != 1) {
                     // code spécial pour 1 care 1 == true, on note la position 1 par -1 dans case visions
                     if (cases_vision[y][x] == -1) {
@@ -297,7 +316,10 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                         printf("%d", cases_vision[y][x]);
                     }
                 } else {
+                    // ETAIT DANS LE IF, MODIF
                     printf(" ");
+                    if (!DEBUG) {
+                    }
                 }
             } else {
                 if (DEBUG) {
@@ -408,6 +430,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
     case 'B':
         VISION_BONUS++;
 
+        /* placement du chevalier */
         grid[*c_pos_y][*c_pos_x] = 0;
         *c_pos_x = futur_x;
         *c_pos_y = futur_y;
@@ -417,8 +440,6 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
         break;
     case 'D':
         /* placement du chevalier */
-
-
         grid[*c_pos_y][*c_pos_x] = 0;
         *c_pos_x = futur_x;
         *c_pos_y = futur_y;
@@ -445,13 +466,114 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
         ITER--;
         break;
     case 'M':
-
+        /* placement du chevalier */
+        grid[*c_pos_y][*c_pos_x] = 0;
+        *c_pos_x = futur_x;
+        *c_pos_y = futur_y;
+        grid[*c_pos_y][*c_pos_x] = 'C';
+        /* placement de la cible piegee */
+        do {
+            x_tmp = hasard(0, 15);
+            y_tmp = hasard(0, 15);
+        } while (grid[x_tmp][y_tmp]);
+        /* P pour piege, sera affiche comme un T, si le joueur tombe dessus il perd. Pas de chance ! */
+        grid[x_tmp][y_tmp] = 'P';
+        break;
+    case 'P':
+        LOST = true;
+        break;
     default:
         grid[*c_pos_y][*c_pos_x] = 0;
         *c_pos_x = futur_x;
         *c_pos_y = futur_y;
         grid[*c_pos_y][*c_pos_x] = 'C';
         break;
+    }
+
+    /* On essaie de faire bouger la cible suivant la place dans l'ordre suivant :
+     *      1
+     *    4 T 2
+     *      3
+     */
+    int roll = hasard(1, 4);
+    int nb_tests = 0;
+    int cible_y_per = CIBLE_Y;
+    int cible_x_per = CIBLE_X;
+    bool cible_deplacee = false;
+    if (CIBLE_MOBILE) {
+        // ROLL 4
+        do {
+            printf("here, roll = %d, cible_deplace = %d, nb_tests  = %d, CIBLE_Y = %d, CIBLE_X = %d\n", roll, cible_deplacee,nb_tests, CIBLE_Y, CIBLE_X);
+            switch (roll) {
+            case 1:
+                if ((CIBLE_Y - 1) < 0) {
+                    cible_y_per = HAUTEUR - 1;
+                } else {
+                    cible_y_per = CIBLE_Y - 1;
+                }
+                printf("case %d, grid[%d][%d] = %c\n",roll,cible_y_per,CIBLE_X,grid[cible_y_per][CIBLE_X]);
+                if (!grid[cible_y_per][CIBLE_X]) {
+                    grid[CIBLE_Y][CIBLE_X] = 0;
+                    CIBLE_Y = cible_y_per;
+                    grid[cible_y_per][CIBLE_X] = 'T';
+                    cible_deplacee = true;
+                } else {
+                    ++roll;
+                    ++nb_tests;
+                }
+                break;
+            case 2:
+                if ((CIBLE_X + 1) > HAUTEUR - 1) {
+                    cible_x_per = CIBLE_X + 1 - HAUTEUR; // <=> 0
+                } else {
+                    cible_x_per = CIBLE_X + 1;
+                }
+                if (!grid[CIBLE_Y][cible_x_per]) {
+                    grid[CIBLE_Y][CIBLE_X] = 0;
+                    CIBLE_X = cible_x_per;
+                    grid[CIBLE_Y][CIBLE_X] = 'T';
+                    cible_deplacee = true;
+                } else {
+                    ++roll;
+                    ++nb_tests;
+                }
+                break;
+            case 3:
+                if ((CIBLE_Y + 1) > HAUTEUR - 1) {
+                    cible_y_per = CIBLE_Y + 1 - HAUTEUR; // <=> 0
+                } else {
+                    cible_y_per = CIBLE_Y + 1;
+                }
+                if (!grid[cible_y_per][CIBLE_X]) {
+                    grid[CIBLE_Y][CIBLE_X] = 0;
+                    CIBLE_Y = cible_y_per;
+                    grid[CIBLE_Y][CIBLE_X] = 'T';
+                    cible_deplacee = true;
+                } else {
+                    ++roll;
+                    ++nb_tests;
+                }
+                break;
+            case 4:
+                if ((CIBLE_X - 1) < 0) {
+                    cible_x_per = HAUTEUR - 1;
+                } else {
+                    cible_x_per = CIBLE_X - 1;
+                }
+                if (!grid[CIBLE_Y][cible_x_per]) {
+                    grid[CIBLE_Y][CIBLE_X] = 0;
+                    CIBLE_X = cible_x_per;
+                    grid[CIBLE_Y][CIBLE_X] = 'T';
+                    cible_deplacee = true;
+                } else {
+                    roll = 1; /* boucle */
+                    ++nb_tests;
+                }
+                break;
+            default :
+                break;
+            }
+        } while (!cible_deplacee && nb_tests < 4);
     }
 
     ITER++;
@@ -475,11 +597,27 @@ int main()
     char restart;
     // C = classic; P = Periodique
     char mode = 'C';
+    int diff = 0;
 
     printf("\n\n\nChoix du mode : (C=Classique, P=Periodique) : \n");
     do {
         scanf(" %c", &mode);
     } while (mode != 'C' && mode != 'P');
+
+    printf("Choix de la difficulte (0..10, 0=EASY, 5=NORMAL, 10=HARD) : \n");
+    do {
+        scanf(" %d", &diff);
+    } while (diff < 0 || diff > 20); /* Easter egg : il existe 10 autres niveaux plus durs que HARD */
+    if (diff < 5) {
+        NB_BONUS = NB_BONUS_NORMAL * (5 - diff);
+    } else if (diff > 5) {
+        NB_OBSTACLES = NB_OBSTACLE_NORMAL * (diff - 5);
+    } else { // diff = 5
+        NB_BONUS = NB_BONUS_NORMAL;
+        NB_OBSTACLES = NB_OBSTACLE_NORMAL;
+    }
+
+
 
     int chevalier_pos_x = hasard(5, 10);
     int chevalier_pos_y = hasard(5, 10);
@@ -510,16 +648,53 @@ int main()
             }
 
         }
+
+        if (LOST) {
+            //system("cls");
+            printf("**************** JEU DU CHEVALIER ****************\n");
+            printf("*                                                *\n");
+            printf("*                   PERDU !                      *\n");
+            printf("*            LA CIBLE ETAIT PIEGEE               *\n");
+            printf("*                                                *\n");
+            printf("*       Vous avez perdu en %d iterations !       *\n", ITER);
+            printf("*                                                *\n");
+            printf("************** 'R' pour recommencer **************\n");
+            scanf(" %c", &restart);
+            if (restart == 'R') {
+                Restart = true;
+            } else {
+                Quit = true;
+            }
+
+        }
+
+
         if (Restart) {
             chevalier_pos_x = hasard(5, 10);
             chevalier_pos_y = hasard(5, 10);
             VISION_BONUS = 0;
             ITER = 0;
             WON = false;
-            printf("Choix du mode (Classique = C, Periodique = P) : \n");
+
+            printf("Choix du mode : (C=Classique, P=Periodique) : \n");
             do {
                 scanf(" %c", &mode);
             } while (mode != 'C' && mode != 'P');
+
+            printf("Choix de la difficulte (0..10, 0=EASY, 5=NORMAL, 10=HARD) : \n");
+            do {
+                scanf(" %d", &diff);
+            } while (diff < 0 || diff > 20); /* Easter egg : il existe 10 autres niveaux plus durs que HARD */
+            if (diff < 5) {
+                NB_BONUS = NB_BONUS_NORMAL * (5 - diff);
+                NB_OBSTACLES = NB_OBSTACLE_NORMAL;
+            } else if (diff > 5) {
+                NB_BONUS = NB_BONUS_NORMAL;
+                NB_OBSTACLES = NB_OBSTACLE_NORMAL * (diff - 5);
+            } else { // diff = 5
+                NB_BONUS = NB_BONUS_NORMAL;
+                NB_OBSTACLES = NB_OBSTACLE_NORMAL;
+            }
 
             init_grid(grid, NB_OBSTACLES, NB_BONUS, chevalier_pos_x, chevalier_pos_y, NB_WARP,
                       NB_DUPLICATE, NB_MALUS);
@@ -537,7 +712,7 @@ int main()
             printf("MODE ERROR : %c\n", mode);
         }
         printf("\n");
-        printf("Prochaine position (R pour recommencer) : ");
+        printf("Prochaine position (R pour recommencer, D pour debugger) : ");
 
         // On aurait pu se simplifier la vie en utilisant char futur_pos, le scan fonctionne ensuite dans tout les cas
         // Ici on utilise le fait que scan f retourne un entier correspondant au nombre d'arguments lu
@@ -552,9 +727,9 @@ int main()
             if (restart == 'R') {
                 Restart = true;
             }
-            // permet d'enter en mode debug
-            if (restart == 'D') {
-                DEBUG = true;
+                // permet d'enter/sortir du mode debug
+            else if (restart == 'D') {
+                DEBUG = !DEBUG;
             }
 
         }
