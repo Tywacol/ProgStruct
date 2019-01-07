@@ -203,8 +203,6 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
 // VERSION PERIODIQUE
 void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
 {
-
-    printf("INIT OUTPUT_PERIODIQUE : c_pos_y = %d, c_pos_x = %d\n", c_pos_y, c_pos_x);
     int vision = 2 + VISION_BONUS;
 
     int cases_vision[HAUTEUR][HAUTEUR];
@@ -222,56 +220,39 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
             depassement = false;
             y_periodique = j;
             x_periodique = i;
-            printf("j = %d, i=%d\n",j,i);
             if (j < 0) {
                 y_periodique = (HAUTEUR - 1) + (j + 1);
-                cases_vision[y_periodique][i] = true;
-                depassement = true;
-            } else if (j > (HAUTEUR - 1)) {
-                //PSEUDO
-                // SI PB EN I :
-                //SINON :
-                // Utilisation de %??
-                // new
-                y_periodique = j - (HAUTEUR);
 
-                // test
                 if (i < 0) {
                     x_periodique = (HAUTEUR - 1) + (i + 1);
                 } else if (i > (HAUTEUR - 1)) {
                     x_periodique = i - (HAUTEUR);
-
                 }
-                // </test>
+                cases_vision[y_periodique][x_periodique] = true;
+                depassement = true;
+            } else if (j > (HAUTEUR - 1)) {
+                y_periodique = j - (HAUTEUR);
 
-                //modif i->x_periodique
-                printf("\ty_periodique = %d, x_periodique = %d, c_pos_y = %d, c_pos_x = %d\n", y_periodique, x_periodique, c_pos_y, c_pos_x);
-                cases_vision[y_periodique][x_periodique] = true; // PB pas de verif sur i, utilisation de %?
+                if (i < 0) {
+                    x_periodique = (HAUTEUR - 1) + (i + 1);
+                } else if (i > (HAUTEUR - 1)) {
+                    x_periodique = i - (HAUTEUR);
+                }
+
+                cases_vision[y_periodique][x_periodique] = true;
                 depassement = true;
             }
 
-            //work to do here
             if (i < 0) {
-                // new2
+
                 x_periodique = (HAUTEUR - 1) + (i + 1);
-                cases_vision[j][x_periodique] = true;
+                cases_vision[y_periodique][x_periodique] = true;
                 depassement = true;
             } else if (i > (HAUTEUR - 1)) {
                 x_periodique = i - (HAUTEUR);
-                cases_vision[j][x_periodique] = true;
+                cases_vision[y_periodique][x_periodique] = true;
                 depassement = true;
             }
-
-            // Maybe a special case for each corner..
-            // Tried that -> no effect
-            // Bottom right corner
-            /*
-            if (i > (HAUTEUR - 1) && j > i > (HAUTEUR - 1)) {
-                cases_vision[y_periodique][x_periodique] = true;
-            }
-            */
-
-            printf("Arrived here, j = %d, y_perio = %d, i = %d, x_perio = %d, c_pos_y = %d, c_pos_x = %d\n",j,y_periodique,i,x_periodique,c_pos_y,c_pos_x);
 
             if (!depassement) {
                 cases_vision[j][i] = true;
@@ -298,14 +279,12 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
             }
 
 
-
         }
     }
 
 
     printf("\n");
     for (int y = 0; y < HAUTEUR; ++y) {
-        //printf("|");
         for (int x = 0; x < LARGEUR; ++x) {
             if (cases_vision[y][x]) {
                 if (grid[y][x]) {
@@ -331,8 +310,6 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
         }
         printf("\n");
     }
-
-    printf("c_pos_y = %d, c_pos_x = %d\n", c_pos_y, c_pos_x);
 
 }
 
@@ -453,6 +430,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
             y_tmp = hasard(0, 15);
         } while (grid[x_tmp][y_tmp]);
         grid[x_tmp][y_tmp] = 'T';
+        break;
     case 'W':
         /* placement du chevalier */
         do {
@@ -462,8 +440,10 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
         grid[futur_y][futur_x] = 'C';
         // remise a 0 de l'ancienne position
         grid[*c_pos_y][*c_pos_x] = 0;
+        break;
     case 'C' : /* Sortie de la grille en mode classique, la position ne change pas et le nombre d'iteration reste inchangé */
         ITER--;
+        break;
     case 'M':
 
     default:
