@@ -705,11 +705,16 @@ int main()
 
 
         if (Restart) {
+            /* remise à 0 des variables globales */
             chevalier_pos_x = hasard(5, 10);
             chevalier_pos_y = hasard(5, 10);
             VISION_BONUS = 0;
             ITER = 0;
             WON = false;
+            LOST = false;
+            VISION_BONUS = 0;
+            ITER = 0;
+
 
             printf("Choix du mode : (C=Classique, P=Periodique) : \n");
             do {
