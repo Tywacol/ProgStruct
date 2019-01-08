@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdbool.h> // peut etre à la fin plus propre
+#include <stdbool.h>
 
 /* DIMENSIONS */
 #define LARGEUR 16
@@ -41,6 +41,7 @@ int hasard(int inf, int sup)
 }
 
 
+/* Place les different case dans la grille du jeu */
 void
 init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int c_pos_x, int c_pos_y, int nb_warp,
           int nb_duplicate, int nb_malus)
@@ -116,12 +117,16 @@ init_grid(char grid[HAUTEUR][LARGEUR], int nb_obstacles, int nb_bonus, int c_pos
 
 }
 
-/* affiche une tableau */
-// VERSION CLASSIQUE
+/* affiche une tableau
+ * version : CLASSIQUE
+ */
 void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y)
 {
     int vision = 2 + VISION_BONUS;
 
+    /* Deuxième tableau stockant la position des cases sur lequel le joueur
+     * possède la vision
+     */
     int cases_vision[HAUTEUR][HAUTEUR];
     for (int l = 0; l < HAUTEUR; ++l) {
         for (int i = 0; i < HAUTEUR; ++i) {
@@ -133,9 +138,11 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
     int y_periodique = 0;
     int x_periodique = 0;
 
+    /* Determination des 24 cases visibles autour du cavalier */
     for (int j = c_pos_y - vision; j < c_pos_y + vision + 1; ++j) {
         for (int i = c_pos_x - vision; i < c_pos_x + vision + 1; ++i) {
             depassement = false;
+            /* variable gerant les depassement */
             y_periodique = j;
             x_periodique = i;
             if (j < 0) {
@@ -153,9 +160,16 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
                 cases_vision[j][i] = true;
             }
 
+            /* Placement des numero de deplacemenent directement dans cases_visions
+             * On disitingue 3 cas dans cases visions :
+             * 1 - cases_vision[y][x] = false -> pas de vision
+             * 2 - cases_vision[y][x] > 0 -> vision
+             * 2 bis - cases_vision[y][x] != 1 et != 0-> cases_vision note le numero de deplacement qu'on
+             * affiche si la grille est vide a cet endroit
+             */
             if (!grid[y_periodique][x_periodique] && cases_vision[y_periodique][x_periodique]) {
                 if (j == c_pos_y - 1 && i == c_pos_x + 2) {
-                    cases_vision[y_periodique][x_periodique] = -1;
+                    cases_vision[y_periodique][x_periodique] = -1; /* 1 = true donc code special */
                 } else if (j == c_pos_y - 2 && i == c_pos_x + 1) {
                     cases_vision[y_periodique][x_periodique] = 2;
                 } else if (j == c_pos_y - 2 && i == c_pos_x - 1) {
@@ -177,14 +191,21 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
         }
     }
 
-
+    /* affichage de la grille en fonction de la vision */
     printf("\n");
     for (int y = 0; y < HAUTEUR; ++y) {
-        //printf("|");
         for (int x = 0; x < LARGEUR; ++x) {
+            if (DEBUG) {
+                printf("|");
+            }
             if (cases_vision[y][x]) {
                 if (grid[y][x]) {
-                    printf("%c", grid[y][x]);
+                    /* Case T piege, si le joueur est tombe sur le malus */
+                    if (grid[y][x] == 'P') {
+                        printf("T");
+                    } else {
+                        printf("%c", grid[y][x]);
+                    }
                 } else if (cases_vision[y][x] != 1) {
                     // code spécial pour 1 care 1 == true, on note la position 1 par -1 dans case visions
                     if (cases_vision[y][x] == -1) {
@@ -231,6 +252,7 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
             depassement = false;
             y_periodique = j;
             x_periodique = i;
+            /* On test sur y pour sur i pour etre sur de ne pas depasser les bornes de cases_vision */
             if (j < 0) {
                 y_periodique = (HAUTEUR - 1) + (j + 1);
 
@@ -254,8 +276,11 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                 depassement = true;
             }
 
+            /*
+             * pas besoin de tester en y car c'est fait au dessus
+             * on verifie juste si le x dépasse
+             */
             if (i < 0) {
-
                 x_periodique = (HAUTEUR - 1) + (i + 1);
                 cases_vision[y_periodique][x_periodique] = true;
                 depassement = true;
@@ -269,6 +294,13 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                 cases_vision[j][i] = true;
             }
 
+            /* Placement des numero de deplacemenent directement dans cases_visions
+             * On disitingue 3 cas dans cases visions :
+             * 1 - cases_vision[y][x] = false -> pas de vision
+             * 2 - cases_vision[y][x] > 0 -> vision
+             * 2 bis - cases_vision[y][x] != 1 et != 0-> cases_vision note le numero de deplacement qu'on
+             * affiche si la grille est vide a cet endroit
+             */
             if (!grid[y_periodique][x_periodique]) {
                 if (j == c_pos_y - 1 && i == c_pos_x + 2) {
                     cases_vision[y_periodique][x_periodique] = -1;
@@ -293,7 +325,7 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
         }
     }
 
-
+    /* affichage de la grille en fonction de la vision */
     printf("\n");
     for (int y = 0; y < HAUTEUR; ++y) {
         for (int x = 0; x < LARGEUR; ++x) {
@@ -316,10 +348,7 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                         printf("%d", cases_vision[y][x]);
                     }
                 } else {
-                    // ETAIT DANS LE IF, MODIF
                     printf(" ");
-                    if (!DEBUG) {
-                    }
                 }
             } else {
                 if (DEBUG) {
@@ -336,7 +365,9 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
 }
 
 
-/* Renvoie les coordonnees de la futur position */
+/* Renvoie les coordonnees de la futur position en fonction de la position
+ * de chevalier et du choix du joueur
+ */
 void choixToXY(int c_pos_x, int c_pos_y, int f_pos, int *futur_x, int *futur_y)
 {
 
@@ -387,6 +418,8 @@ void choixToXY(int c_pos_x, int c_pos_y, int f_pos, int *futur_x, int *futur_y)
     }
 }
 
+/* renvoie les futur coordonne corrige en fonction des depassement
+ * pour la version periodique du jeu */
 void periodize(int *futur_x, int *futur_y)
 {
     if (*futur_y < 0) {
@@ -403,7 +436,7 @@ void periodize(int *futur_x, int *futur_y)
     }
 }
 
-
+/* deplacement du chevalier et resolution de l'effet des cases */
 void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, char mode)
 {
     int futur_x;
@@ -459,7 +492,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
             futur_x = hasard(0, 15);
         } while (grid[futur_y][futur_x]);
         grid[futur_y][futur_x] = 'C';
-        // remise a 0 de l'ancienne position
+        /* remise a 0 de l'ancienne position */
         grid[*c_pos_y][*c_pos_x] = 0;
         break;
     case 'C' : /* Sortie de la grille en mode classique, la position ne change pas et le nombre d'iteration reste inchangé */
@@ -494,16 +527,16 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
      *      1
      *    4 T 2
      *      3
+     * neanmoins le premier numero tire est aléatoire
      */
     int roll = hasard(1, 4);
     int nb_tests = 0;
+    /* variable pour la gestion des depassement */
     int cible_y_per = CIBLE_Y;
     int cible_x_per = CIBLE_X;
     bool cible_deplacee = false;
     if (CIBLE_MOBILE) {
-        // ROLL 4
         do {
-            printf("here, roll = %d, cible_deplace = %d, nb_tests  = %d, CIBLE_Y = %d, CIBLE_X = %d\n", roll, cible_deplacee,nb_tests, CIBLE_Y, CIBLE_X);
             switch (roll) {
             case 1:
                 if ((CIBLE_Y - 1) < 0) {
@@ -511,7 +544,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
                 } else {
                     cible_y_per = CIBLE_Y - 1;
                 }
-                printf("case %d, grid[%d][%d] = %c\n",roll,cible_y_per,CIBLE_X,grid[cible_y_per][CIBLE_X]);
+                /* deplacement si la case suivante est vide */
                 if (!grid[cible_y_per][CIBLE_X]) {
                     grid[CIBLE_Y][CIBLE_X] = 0;
                     CIBLE_Y = cible_y_per;
@@ -524,10 +557,11 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
                 break;
             case 2:
                 if ((CIBLE_X + 1) > HAUTEUR - 1) {
-                    cible_x_per = CIBLE_X + 1 - HAUTEUR; // <=> 0
+                    cible_x_per = CIBLE_X + 1 - HAUTEUR; /* <=> 0 */
                 } else {
                     cible_x_per = CIBLE_X + 1;
                 }
+                /* deplacement si la case suivante est vide */
                 if (!grid[CIBLE_Y][cible_x_per]) {
                     grid[CIBLE_Y][CIBLE_X] = 0;
                     CIBLE_X = cible_x_per;
@@ -540,7 +574,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
                 break;
             case 3:
                 if ((CIBLE_Y + 1) > HAUTEUR - 1) {
-                    cible_y_per = CIBLE_Y + 1 - HAUTEUR; // <=> 0
+                    cible_y_per = CIBLE_Y + 1 - HAUTEUR; /* <=> 0 */
                 } else {
                     cible_y_per = CIBLE_Y + 1;
                 }
@@ -560,6 +594,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
                 } else {
                     cible_x_per = CIBLE_X - 1;
                 }
+                /* deplacement si la case suivante est vide */
                 if (!grid[CIBLE_Y][cible_x_per]) {
                     grid[CIBLE_Y][CIBLE_X] = 0;
                     CIBLE_X = cible_x_per;
@@ -573,9 +608,10 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
             default :
                 break;
             }
+            /* Si aucun deplacement n'est possible la cible ne bouge pas */
         } while (!cible_deplacee && nb_tests < 4);
     }
-
+    /* icrementation du nombre d'iteration */
     ITER++;
 }
 
@@ -595,7 +631,7 @@ int main()
     bool Quit = false;
     bool Restart = false;
     char restart;
-    // C = classic; P = Periodique
+    /* C = classic; P = Periodique */
     char mode = 'C';
     int diff = 0;
 
@@ -612,11 +648,10 @@ int main()
         NB_BONUS = NB_BONUS_NORMAL * (5 - diff);
     } else if (diff > 5) {
         NB_OBSTACLES = NB_OBSTACLE_NORMAL * (diff - 5);
-    } else { // diff = 5
+    } else { /* diff = 5 */
         NB_BONUS = NB_BONUS_NORMAL;
         NB_OBSTACLES = NB_OBSTACLE_NORMAL;
     }
-
 
 
     int chevalier_pos_x = hasard(5, 10);
@@ -714,20 +749,20 @@ int main()
         printf("\n");
         printf("Prochaine position (R pour recommencer, D pour debugger) : ");
 
-        // On aurait pu se simplifier la vie en utilisant char futur_pos, le scan fonctionne ensuite dans tout les cas
-        // Ici on utilise le fait que scan f retourne un entier correspondant au nombre d'arguments lu
-        // Si on entre 'R', scanf("%d") retourne 0 <=> faux
+        /* On aurait pu se simplifier la vie en utilisant char futur_pos, le scan fonctionne ensuite dans tout les cas
+         * Ici on utilise le fait que scan f retourne un entier correspondant au nombre d'arguments lu
+         * Si on entre 'R', scanf("%d") retourne 0 <=> faux
+         */
         if (scanf("%d", &futur_pos)) {
             move(grid, &chevalier_pos_x, &chevalier_pos_y, futur_pos,
-                 mode); // note : mode pourrait etre globale
-            //system("clear");
+                 mode);
 
-            // On peut alors scanner pour un caractere
+                 /* On peut alors scanner pour un caractere */
         } else if (scanf(" %c", &restart)) {
             if (restart == 'R') {
                 Restart = true;
             }
-                // permet d'enter/sortir du mode debug
+                /* permet d'enter/sortir du mode debug */
             else if (restart == 'D') {
                 DEBUG = !DEBUG;
             }
