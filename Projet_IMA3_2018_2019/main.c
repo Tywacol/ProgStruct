@@ -240,7 +240,7 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
         }
         if (TOMBE_SUR_MALUS == y) {
             printf("\t/!\\ Ce BONUS etait un MALUS ! Un 'T' piege a ete ajoute..!");
-            TOMBE_SUR_MALUS = false;
+            TOMBE_SUR_MALUS = -1;
         }
         printf("\n");
     }
@@ -388,7 +388,7 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
         }
         if (TOMBE_SUR_MALUS == y) {
             printf("\t/!\\ Ce BONUS etait un MALUS ! Un 'T' piege a ete ajoute..!");
-            TOMBE_SUR_MALUS = false;
+            TOMBE_SUR_MALUS = -1;
         }
         printf("\n");
     }
