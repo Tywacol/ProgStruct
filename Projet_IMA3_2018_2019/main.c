@@ -492,6 +492,8 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
             futur_x = hasard(0, 15);
         } while (grid[futur_y][futur_x]);
         grid[futur_y][futur_x] = 'C';
+        *c_pos_x = futur_x;
+        *c_pos_y = futur_y;
         /* remise a 0 de l'ancienne position */
         grid[*c_pos_y][*c_pos_x] = 0;
         break;
