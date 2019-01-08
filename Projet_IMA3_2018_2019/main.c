@@ -25,6 +25,9 @@ bool DEBUG = false; /* Mettre a vrai pour obtenir la vision globale */
 bool WON = false;
 bool LOST = false;
 bool CIBLE_MOBILE = true;
+/* -1 pour que la condition if (TOMBE_SUR_MALUS == y)
+* soit fausse tant que le joueur n'est pas tombe sur un malus */
+int TOMBE_SUR_MALUS = -1;
 
 
 /* initialisation du generateur */
@@ -202,7 +205,17 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
                 if (grid[y][x]) {
                     /* Case T piege, si le joueur est tombe sur le malus */
                     if (grid[y][x] == 'P') {
-                        printf("T");
+                        if (!DEBUG) {
+                            printf("T");
+                        } else {
+                            printf("P");
+                        }
+                    } else if (grid[y][x] == 'M') {
+                        if (!DEBUG) {
+                            printf("B");
+                        } else {
+                            printf("M");
+                        }
                     } else {
                         printf("%c", grid[y][x]);
                     }
@@ -224,6 +237,10 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
                 }
             }
             printf(" ");
+        }
+        if (TOMBE_SUR_MALUS == y) {
+            printf("\t/!\\ Ce BONUS etait un MALUS ! Un 'T' piege a ete ajoute..!");
+            TOMBE_SUR_MALUS = false;
         }
         printf("\n");
     }
@@ -336,7 +353,17 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                 if (grid[y][x]) {
                     /* Case T piege, si le joueur est tombe sur le malus */
                     if (grid[y][x] == 'P') {
-                        printf("T");
+                        if (!DEBUG) {
+                            printf("T");
+                        } else {
+                            printf("P");
+                        }
+                    } else if (grid[y][x] == 'M') {
+                        if (!DEBUG) {
+                            printf("B");
+                        } else {
+                            printf("M");
+                        }
                     } else {
                         printf("%c", grid[y][x]);
                     }
@@ -358,6 +385,10 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                 }
             }
             printf(" ");
+        }
+        if (TOMBE_SUR_MALUS == y) {
+            printf("\t/!\\ Ce BONUS etait un MALUS ! Un 'T' piege a ete ajoute..!");
+            TOMBE_SUR_MALUS = false;
         }
         printf("\n");
     }
@@ -501,6 +532,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
         ITER--;
         break;
     case 'M':
+        TOMBE_SUR_MALUS = futur_y;
         /* placement du chevalier */
         grid[*c_pos_y][*c_pos_x] = 0;
         *c_pos_x = futur_x;
@@ -529,8 +561,7 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
      *      1
      *    4 T 2
      *      3
-     * neanmoins le premier numero tire est aléatoire
-     */
+     * neanmoins le premier numero tire est aléatoire */
     int roll = hasard(1, 4);
     int nb_tests = 0;
     /* variable pour la gestion des depassement */
@@ -764,7 +795,7 @@ int main()
             move(grid, &chevalier_pos_x, &chevalier_pos_y, futur_pos,
                  mode);
 
-                 /* On peut alors scanner pour un caractere */
+            /* On peut alors scanner pour un caractere */
         } else if (scanf(" %c", &restart)) {
             if (restart == 'R') {
                 Restart = true;
