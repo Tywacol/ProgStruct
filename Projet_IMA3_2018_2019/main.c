@@ -231,7 +231,11 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
                 }
             } else {
                 if (DEBUG) {
-                    printf("%c", grid[y][x]);
+                    if (grid[y][x]) {
+                        printf("%c", grid[y][x]);
+                    } else {
+                        printf(" ");
+                    }
                 } else {
                     printf("%c", 35); //  caractere : #
                     // printf("%c", 254); // 254 est le caractère carre  : ■, esthetique sous windows mais ne passe pas sous linux
@@ -385,7 +389,11 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                 }
             } else {
                 if (DEBUG) {
-                    printf("%c", grid[y][x]);
+                    if (grid[y][x]) {
+                        printf("%c", grid[y][x]);
+                    } else {
+                        printf(" ");
+                    }
                 } else {
                     printf("%c", 35); //  caractere : #
                     // printf("%c", 254); // 254 est le caractère carre  : ■
