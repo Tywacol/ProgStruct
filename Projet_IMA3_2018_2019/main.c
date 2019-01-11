@@ -720,7 +720,7 @@ int main()
 
     do {
         if (WON) {
-            //system("clear");
+            system("clear");
             printf("**************** JEU DU CHEVALIER ****************\n");
             printf("*                                                *\n");
             printf("*                   BRAVO !                      *\n");
@@ -738,7 +738,7 @@ int main()
         }
 
         if (LOST) {
-            //system("clear");
+            system("clear");
             printf("**************** JEU DU CHEVALIER ****************\n");
             printf("*                                                *\n");
             printf("*                   PERDU !                      *\n");
@@ -827,7 +827,7 @@ int main()
 
         }
         //
-        //system("clear");
+        system("clear");
 
     } while (!Quit);
 
