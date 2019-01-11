@@ -237,7 +237,12 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
                     // printf("%c", 254); // 254 est le caractère carre  : ■, esthetique sous windows mais ne passe pas sous linux
                 }
             }
-            printf(" ");
+            if (!DEBUG) {
+                printf(" ");
+            }
+        }
+        if (DEBUG) {
+            printf("|");
         }
         if (TOMBE_SUR_MALUS == y) {
             printf("\t/!\\ Ce BONUS etait un MALUS ! Un 'T' piege a ete ajoute..!");
@@ -386,7 +391,12 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                     // printf("%c", 254); // 254 est le caractère carre  : ■
                 }
             }
-            printf(" ");
+            if (!DEBUG) {
+                printf(" ");
+            }
+        }
+        if (DEBUG) {
+            printf("|");
         }
         if (TOMBE_SUR_MALUS == y) {
             printf("\t/!\\ Ce BONUS etait un MALUS ! Un 'T' piege a ete ajoute..!");
@@ -702,7 +712,7 @@ int main()
 
     do {
         if (WON) {
-            system("clear");
+            //system("clear");
             printf("**************** JEU DU CHEVALIER ****************\n");
             printf("*                                                *\n");
             printf("*                   BRAVO !                      *\n");
@@ -720,7 +730,7 @@ int main()
         }
 
         if (LOST) {
-            system("clear");
+            //system("clear");
             printf("**************** JEU DU CHEVALIER ****************\n");
             printf("*                                                *\n");
             printf("*                   PERDU !                      *\n");
@@ -808,7 +818,8 @@ int main()
             }
 
         }
-        system("clear");
+        //
+        //system("clear");
 
     } while (!Quit);
 
