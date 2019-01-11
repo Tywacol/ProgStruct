@@ -233,7 +233,8 @@ void output_grid_classique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_y
                 if (DEBUG) {
                     printf("%c", grid[y][x]);
                 } else {
-                    printf("%c", 254); // 254 est le caractère carre  : ■
+                    printf("%c", 35); //  caractere : #
+                    // printf("%c", 254); // 254 est le caractère carre  : ■, esthetique sous windows mais ne passe pas sous linux
                 }
             }
             printf(" ");
@@ -381,7 +382,8 @@ void output_grid_periodique(char grid[HAUTEUR][LARGEUR], int c_pos_x, int c_pos_
                 if (DEBUG) {
                     printf("%c", grid[y][x]);
                 } else {
-                    printf("%c", 254); // 254 est le caractère carre  : ■
+                    printf("%c", 35); //  caractere : #
+                    // printf("%c", 254); // 254 est le caractère carre  : ■
                 }
             }
             printf(" ");
@@ -517,6 +519,8 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
         grid[x_tmp][y_tmp] = 'T';
         break;
     case 'W':
+        /* remise a 0 de l'ancienne position */
+        grid[*c_pos_y][*c_pos_x] = 0;
         /* placement du chevalier */
         do {
             futur_y = hasard(0, 15);
@@ -525,8 +529,6 @@ void move(char grid[LARGEUR][HAUTEUR], int *c_pos_x, int *c_pos_y, int f_pos, ch
         grid[futur_y][futur_x] = 'C';
         *c_pos_x = futur_x;
         *c_pos_y = futur_y;
-        /* remise a 0 de l'ancienne position */
-        grid[*c_pos_y][*c_pos_x] = 0;
         break;
     case 'C' : /* Sortie de la grille en mode classique, la position ne change pas et le nombre d'iteration reste inchangé */
         ITER--;
@@ -700,7 +702,7 @@ int main()
 
     do {
         if (WON) {
-            //system("cls");
+            system("clear");
             printf("**************** JEU DU CHEVALIER ****************\n");
             printf("*                                                *\n");
             printf("*                   BRAVO !                      *\n");
@@ -718,7 +720,7 @@ int main()
         }
 
         if (LOST) {
-            //system("cls");
+            system("clear");
             printf("**************** JEU DU CHEVALIER ****************\n");
             printf("*                                                *\n");
             printf("*                   PERDU !                      *\n");
@@ -806,6 +808,7 @@ int main()
             }
 
         }
+        system("clear");
 
     } while (!Quit);
 
